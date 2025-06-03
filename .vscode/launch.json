@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Tubes_TDL",
-      "program": "c:/Tubes_TDL/build/Debug/outDebug",
+      "cwd": "c:/Users/Samudra P Gunawan/OneDrive - Politeknik Negeri Bandung/SDA/TUBES/Tubes",
+      "program": "c:/Users/Samudra P Gunawan/OneDrive - Politeknik Negeri Bandung/SDA/TUBES/Tubes/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
