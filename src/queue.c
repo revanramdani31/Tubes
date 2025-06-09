@@ -1,49 +1,81 @@
 #include "queue.h"
-#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-void pq_init(PQueue* q){
+// --- Implementasi Fungsi Queue ---
+
+Queue* createQueue() {
+    Queue* q = (Queue*)malloc(sizeof(Queue));
+    if (!q) {
+        perror("Gagal alokasi Queue");
+        exit(EXIT_FAILURE);
+    }
+    q->front = q->rear = NULL;
     q->count = 0;
+    return q;
 }
 
-int pq_empty(PQueue* q){
-    return q->count == 0;
+int isQueueEmpty(Queue* q) {
+    return q == NULL || q->front == NULL;
 }
 
-void pq_enqueue(PQueue* q, const char* t, int p){
-    if(q->count >= MAX_TUGAS){
-        puts("Antrian penuh!");
+void enqueueBatchItem(Queue* q, BatchDeleteItem* item) {
+    if(!q || !item) return;
+    
+    // Memanggil fungsi dari linkedlist.c
+    LinkedListNode* newNode = createLinkedListNode(item); 
+    
+    if (!newNode) {
+        free(item);
+        perror("Gagal alokasi Node untuk Queue Batch");
         return;
     }
-    int i = q->count - 1;
-    while(i >= 0 && p < q->prio[i]){
-        strcpy(q->tugas[i+1], q->tugas[i]);
-        q->prio[i+1] = q->prio[i];
-        i--;
+    newNode->next = NULL;
+    
+    if (q->rear == NULL) {
+        q->front = q->rear = newNode;
+    } else {
+        q->rear->next = newNode;
+        q->rear = newNode;
     }
-    strcpy(q->tugas[i+1], t);
-    q->prio[i+1] = p;
     q->count++;
 }
 
-char* pq_dequeue(PQueue* q){
-    static char ret[MAX_NAME];
-    if(pq_empty(q)){
-        puts("Antrian kosong!");
-        return NULL;
+BatchDeleteItem* dequeueBatchItem(Queue* q) {
+    if (isQueueEmpty(q)) return NULL;
+    
+    LinkedListNode* temp = q->front;
+    BatchDeleteItem* item = (BatchDeleteItem*)temp->data;
+    q->front = q->front->next;
+    
+    if (q->front == NULL) {
+        q->rear = NULL;
     }
-    strcpy(ret, q->tugas[0]);
-    for(int i = 1; i < q->count; i++){
-        strcpy(q->tugas[i-1], q->tugas[i]);
-        q->prio[i-1] = q->prio[i];
-    }
+    
+    free(temp);
     q->count--;
-    return ret;
+    return item;
 }
 
-void pq_print(PQueue* q){
-    puts("\n-- Antrian Tugas (Prioritas Rendah → Tinggi) --");
-    for(int i=0; i<q->count; i++){
-        printf("%d. %s (P=%d)\n", i+1, q->tugas[i], q->prio[i]);
+void freeQueueAndItems(Queue* q) {
+    if (!q) return;
+    while (!isQueueEmpty(q)) {
+        BatchDeleteItem* item = dequeueBatchItem(q);
+        if (item) free(item);
+    }
+    free(q);
+}
+
+void freeQueue(Queue* q) {
+    if (q) {
+        if (q->front != NULL) {
+            LinkedListNode *current = q->front, *next_node;
+            while(current != NULL) {
+                next_node = current->next;
+                free(current);
+                current = next_node;
+            }
+        }
+        free(q);
     }
 }
