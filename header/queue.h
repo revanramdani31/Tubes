@@ -1,29 +1,18 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include "linkedlist.h" // Menggunakan definisi LinkedListNode
+#include "linkedlist.h"
 
-// --- Definisi Konstanta & Struktur Spesifik Queue ---
-#define MAX_ID_LEN 50
-
-// Item spesifik yang akan disimpan di dalam queue untuk batch delete
-typedef struct BatchDeleteItem {
-    char taskId[MAX_ID_LEN];
-} BatchDeleteItem;
-
-// Definisi struktur Queue
-typedef struct Queue {
+typedef struct {
     LinkedListNode* front;
     LinkedListNode* rear;
     int count;
 } Queue;
 
-// --- Prototipe Fungsi Queue ---
 Queue* createQueue();
 int isQueueEmpty(Queue* q);
-void enqueueBatchItem(Queue* q, BatchDeleteItem* item);
-BatchDeleteItem* dequeueBatchItem(Queue* q);
-void freeQueueAndItems(Queue* q);
-void freeQueue(Queue* q);
+void enqueue(Queue* q, void* data);
+void* dequeue(Queue* q);
+void freeQueue(Queue* q, void (*free_data_func)(void*));
 
 #endif // QUEUE_H

@@ -1,13 +1,11 @@
-#include "queue.h"
+#include "../header/queue.h"
 #include <stdio.h>
 #include <stdlib.h>
-
-// --- Implementasi Fungsi Queue ---
 
 Queue* createQueue() {
     Queue* q = (Queue*)malloc(sizeof(Queue));
     if (!q) {
-        perror("Gagal alokasi Queue");
+        perror("Failed to allocate Queue");
         exit(EXIT_FAILURE);
     }
     q->front = q->rear = NULL;
@@ -19,19 +17,15 @@ int isQueueEmpty(Queue* q) {
     return q == NULL || q->front == NULL;
 }
 
-void enqueueBatchItem(Queue* q, BatchDeleteItem* item) {
-    if(!q || !item) return;
-    
-    // Memanggil fungsi dari linkedlist.c
-    LinkedListNode* newNode = createLinkedListNode(item); 
-    
+void enqueue(Queue* q, void* data) {
+    if (!q || !data) return;
+    LinkedListNode* newNode = createLinkedListNode(data);
     if (!newNode) {
-        free(item);
-        perror("Gagal alokasi Node untuk Queue Batch");
+        free(data);
+        perror("Failed to allocate Node for Queue");
         return;
     }
     newNode->next = NULL;
-    
     if (q->rear == NULL) {
         q->front = q->rear = newNode;
     } else {
@@ -41,41 +35,21 @@ void enqueueBatchItem(Queue* q, BatchDeleteItem* item) {
     q->count++;
 }
 
-BatchDeleteItem* dequeueBatchItem(Queue* q) {
+void* dequeue(Queue* q) {
     if (isQueueEmpty(q)) return NULL;
-    
     LinkedListNode* temp = q->front;
-    BatchDeleteItem* item = (BatchDeleteItem*)temp->data;
+    void* data = temp->data;
     q->front = q->front->next;
-    
     if (q->front == NULL) {
         q->rear = NULL;
     }
-    
     free(temp);
     q->count--;
-    return item;
+    return data;
 }
 
-void freeQueueAndItems(Queue* q) {
+void freeQueue(Queue* q, void (*free_data_func)(void*)) {
     if (!q) return;
-    while (!isQueueEmpty(q)) {
-        BatchDeleteItem* item = dequeueBatchItem(q);
-        if (item) free(item);
-    }
+    freeList(&(q->front), free_data_func);
     free(q);
-}
-
-void freeQueue(Queue* q) {
-    if (q) {
-        if (q->front != NULL) {
-            LinkedListNode *current = q->front, *next_node;
-            while(current != NULL) {
-                next_node = current->next;
-                free(current);
-                current = next_node;
-            }
-        }
-        free(q);
-    }
 }

@@ -3,14 +3,14 @@
 
 #include <stdlib.h>
 
-// --- Definisi Struktur Dasar ---
-// Node generik untuk linked list
 typedef struct LinkedListNode {
     void* data;
     struct LinkedListNode* next;
 } LinkedListNode;
 
-// --- Prototipe Fungsi ---
 LinkedListNode* createLinkedListNode(void* data);
+void appendToList(LinkedListNode** head, void* data);
+void removeFromList(LinkedListNode** head, void* data_to_remove, int free_data);
+void freeList(LinkedListNode** head, void (*free_data_func)(void*));
 
 #endif // LINKEDLIST_H
