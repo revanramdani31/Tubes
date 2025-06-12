@@ -4,57 +4,62 @@
 
 #include <stdio.h>
 
-#define MAX_NAME 50
-#define MAX_DESC 120
-#define DATE_LEN 16
-#define MAX_DEPTH 20
+#define MAX_ID_LEN 50
+#define MAX_NAME_LEN 100
+#define MAX_DESC_LEN 500
+#define DATE_LEN 11
+#define MAX_LINE_LEN 1024
 
 typedef enum {
-    TODO,
-    IN_PROGRESS,
-    DONE
-} Status;
+    TASK_STATUS_BARU,
+    TASK_STATUS_DIKERJAKAN,
+    TASK_STATUS_SELESAI,
+    TASK_STATUS_TERTUNDA,
+    TASK_STATUS_COUNT
+} TaskStatus;
 
-typedef struct TreeNode {
-    char name[MAX_NAME];
-    char desc[MAX_DESC];
-    int est_hours;
-    char deadline[DATE_LEN];
-    Status status;
+typedef enum {
+    TASK_PRIORITY_RENDAH,
+    TASK_PRIORITY_SEDANG,
+    TASK_PRIORITY_TINGGI,
+    TASK_PRIORITY_COUNT
+} TaskPriority;
 
-    struct TreeNode* first_child;   // menunjuk ke anak pertama
-    struct TreeNode* next_sibling;  // menunjuk ke saudara berikutnya
-} TreeNode;
+extern const char* taskStatusToString[];
+extern const char* taskPriorityToString[];
 
-// Fungsi-fungsi utilitas
-const char* statusStr(Status s);
+// Task structure using tree structure
+typedef struct Task {
+    char taskId[MAX_ID_LEN];
+    char taskName[MAX_NAME_LEN];
+    char description[MAX_DESC_LEN];
+    char projectId[MAX_ID_LEN];
+    char parentTaskId[MAX_ID_LEN];  // Store parent task ID for loading/saving
+    struct Task* parent;            // Parent node
+    struct Task* firstChild;        // First child node
+    struct Task* nextSibling;       // Next sibling node
+    TaskStatus status;
+    TaskPriority priority;
+    char dueDate[DATE_LEN];
+} Task;
 
-// Membuat simpul baru
-TreeNode* node_create(const char* name, const char* desc, int est_hours, const char* deadline);
+TaskStatus getTaskStatusFromInput();
+TaskPriority getTaskPriorityFromInput();
+Task* createTaskInternal(const char* id, const char* name, const char* desc,
+                        const char* projectId, const char* parentTaskId,
+                        TaskStatus status, TaskPriority priority, const char* dueDate);
+void addChildTask(Task* parentTask, Task* childTask);
+Task* findTaskById(Task* root, const char* taskId);
+void displayTaskTree(Task* task, int level);
+void displayWBSTree(Task* task, int level, int isLastChild);
+void displayWBSHeader();
+void displayWBSFooter();
+void editTaskDetails(Task* task);
+void deepFreeTask(Task* task);
+void findAndPrintTasksByStatus(Task* root, TaskStatus status, int* count, int level);
+void findAndPrintTasksByPriority(Task* root, TaskPriority priority, int* count, int level);
+void searchTasksByName(Task* root, const char* searchTerm, int* count, int level);
 
-// Menambahkan anak ke simpul induk
-void node_add_child(TreeNode* parent, TreeNode* child);
 
-// Mencari simpul berdasarkan nama
-TreeNode* node_find(TreeNode* root, const char* target_name);
 
-// Menampilkan pohon
-void node_print(TreeNode* root, int level);
-
-// Menghitung total dan tugas selesai
-void node_count(TreeNode* root, int* total, int* done);
-
-// Menyimpan dan memuat pohon ke/dari file
-void node_save(FILE* file, TreeNode* root, int level);
-TreeNode* node_load(FILE* file);
-
-// Menghapus seluruh pohon dari memori
-void free_tree(TreeNode* root);
-
-// Menghapus simpul berdasarkan nama
-int node_delete(TreeNode* parent, const char* target_name);
-
-// Mengedit isi simpul
-void node_edit(TreeNode* node);
-
-#endif
+#endif /* TREE_H */
