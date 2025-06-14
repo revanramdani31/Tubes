@@ -1,7 +1,8 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include "linkedlist.h"
+#include "utils.h"
+#include "batch.h"
 
 typedef struct QueueNode {
     void* data;
