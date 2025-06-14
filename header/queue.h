@@ -1,18 +1,29 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include "linkedlist.h"
+#include "utils.h"
 
-typedef struct {
-    LinkedListNode* front;
-    LinkedListNode* rear;
-    int count;
+typedef struct QueueNode {
+    void* data;
+    struct QueueNode* next;
+} QueueNode;
+
+typedef struct Queue {
+    QueueNode* front;
+    QueueNode* rear;
+    int size;
 } Queue;
 
+// Basic queue operations
 Queue* createQueue();
-int isQueueEmpty(Queue* q);
 void enqueue(Queue* q, void* data);
 void* dequeue(Queue* q);
-void freeQueue(Queue* q, void (*free_data_func)(void*));
+int isQueueEmpty(Queue* q);
+void freeQueue(Queue* q);
 
-#endif // QUEUE_H
+// Batch-specific operations
+void enqueueBatchItem(Queue* q, BatchDeleteItem* item);
+BatchDeleteItem* dequeueBatchItem(Queue* q);
+void freeQueueAndItems(Queue* q);
+
+#endif // QUEUE_H 

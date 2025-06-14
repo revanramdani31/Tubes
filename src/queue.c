@@ -1,55 +1,75 @@
-#include "../header/queue.h"
-#include <stdio.h>
+#include "queue.h"
 #include <stdlib.h>
 
 Queue* createQueue() {
     Queue* q = (Queue*)malloc(sizeof(Queue));
-    if (!q) {
-        perror("Failed to allocate Queue");
-        exit(EXIT_FAILURE);
-    }
-    q->front = q->rear = NULL;
-    q->count = 0;
+    if (!q) return NULL;
+    q->front = NULL;
+    q->rear = NULL;
+    q->size = 0;
     return q;
 }
 
-int isQueueEmpty(Queue* q) {
-    return q == NULL || q->front == NULL;
-}
-
 void enqueue(Queue* q, void* data) {
-    if (!q || !data) return;
-    LinkedListNode* newNode = createLinkedListNode(data);
-    if (!newNode) {
-        free(data);
-        perror("Failed to allocate Node for Queue");
-        return;
-    }
+    if (!q) return;
+    
+    QueueNode* newNode = (QueueNode*)malloc(sizeof(QueueNode));
+    if (!newNode) return;
+    
+    newNode->data = data;
     newNode->next = NULL;
-    if (q->rear == NULL) {
-        q->front = q->rear = newNode;
-    } else {
+    
+    if (q->rear) {
         q->rear->next = newNode;
         q->rear = newNode;
+    } else {
+        q->front = q->rear = newNode;
     }
-    q->count++;
+    q->size++;
 }
 
 void* dequeue(Queue* q) {
-    if (isQueueEmpty(q)) return NULL;
-    LinkedListNode* temp = q->front;
+    if (!q || !q->front) return NULL;
+    
+    QueueNode* temp = q->front;
     void* data = temp->data;
-    q->front = q->front->next;
-    if (q->front == NULL) {
-        q->rear = NULL;
-    }
+    
+    q->front = temp->next;
+    if (!q->front) q->rear = NULL;
+    
     free(temp);
-    q->count--;
+    q->size--;
     return data;
 }
 
-void freeQueue(Queue* q, void (*free_data_func)(void*)) {
+int isQueueEmpty(Queue* q) {
+    return !q || !q->front;
+}
+
+void enqueueBatchItem(Queue* q, BatchDeleteItem* item) {
+    enqueue(q, item);
+}
+
+BatchDeleteItem* dequeueBatchItem(Queue* q) {
+    return (BatchDeleteItem*)dequeue(q);
+}
+
+void freeQueue(Queue* q) {
     if (!q) return;
-    freeList(&(q->front), free_data_func);
+    
+    while (!isQueueEmpty(q)) {
+        void* data = dequeue(q);
+        if (data) free(data);
+    }
     free(q);
 }
+
+void freeQueueAndItems(Queue* q) {
+    if (!q) return;
+    
+    while (!isQueueEmpty(q)) {
+        BatchDeleteItem* item = dequeueBatchItem(q);
+        if (item) free(item);
+    }
+    free(q);
+} 

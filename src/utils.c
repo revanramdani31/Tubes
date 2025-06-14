@@ -1,35 +1,90 @@
-// utils.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include "utils.h"
 
-static long id_counter = 0;
 
-void generateUniqueId(const char* prefix, char* id_buffer) {
-    static long simple_counter_for_id = 0;
-    if (id_counter == 0 && simple_counter_for_id == 0) {
-        id_counter = time(NULL) / 100;
-        if (id_counter == 0) id_counter = 1;
-    }
-    simple_counter_for_id++;
-    sprintf(id_buffer, "%s_%ld", prefix, simple_counter_for_id);
-    printf("DEBUG: generateUniqueId: prefix='%s', simple_counter_for_id=%ld, id_buffer Hasil='%s'\n", 
-           prefix, simple_counter_for_id, id_buffer);
+// Global variables
+long project_counter = 0;
+long task_counter = 0;
+long change_counter = 0;
+
+void clearBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
+char* generateProjectId() {
+    static char buffer[MAX_ID_LEN];
+    snprintf(buffer, MAX_ID_LEN, "PRJ%ld", ++project_counter);
+    return buffer;
+}
+
+char* generateTaskId() {
+    static char buffer[MAX_ID_LEN];
+    snprintf(buffer, MAX_ID_LEN, "TSK%ld", ++task_counter);
+    return buffer;
+}
+
+char* generateChangeId() {
+    static char buffer[MAX_ID_LEN];
+    snprintf(buffer, MAX_ID_LEN, "CHG%ld", ++change_counter);
+    return buffer;
 }
 
 int getSubMenuChoice(int max_option) {
-    int sub_choice = -1;
-    if (scanf("%d", &sub_choice) != 1) {
-        printf("Input sub-menu tidak valid.\n");
-        while (getchar() != '\n');
-        return -1;
+    int choice;
+    printf("Pilihan: ");
+    scanf("%d", &choice);
+    clearBuffer(); // Consume newline
+    
+    if (choice >= 0 && choice <= max_option) {
+        return choice;
     }
-    while (getchar() != '\n');
-    if (sub_choice < 0 || sub_choice > max_option) {
-        printf("Pilihan sub-menu tidak valid.\n");
-        return -1;
-    }
-    return sub_choice;
+    
+    printf("Pilihan tidak valid.\n");
+    return -1;
 }
+
+void searchTasksByName(Task* root, const char* searchTerm, int* foundCount, int level) {
+    if (!root || !searchTerm) return;
+
+    if (strstr(root->taskName, searchTerm) != NULL ||
+        strstr(root->description, searchTerm) != NULL) {
+        for (int i = 0; i < level; i++) printf("  ");
+        printf("- %s (ID: %s)\n", root->taskName, root->taskId);
+        (*foundCount)++;
+    }
+
+    // Search in children
+    Task* child = root->firstChild;
+    while (child) {
+        searchTasksByName(child, searchTerm, foundCount, level + 1);
+        child = child->nextSibling;
+    }
+}
+
+void findAndPrintTasksByStatus(Task* root, TaskStatus status, int* foundCount, int level) {
+    if (!root) return;
+
+    if (root->status == status) {
+        for (int i = 0; i < level; i++) printf("  ");
+        printf("- %s (ID: %s)\n", root->taskName, root->taskId);
+        (*foundCount)++;
+    }
+
+    // Search in children
+    Task* child = root->firstChild;
+    while (child) {
+        findAndPrintTasksByStatus(child, status, foundCount, level + 1);
+        child = child->nextSibling;
+    }
+}
+
+int getConfirmation(const char* message) {
+    char input[10];
+    printf("\n%s (y/n): ", message);
+    fgets(input, sizeof(input), stdin);
+    return (input[0] == 'y' || input[0] == 'Y');
+} 
