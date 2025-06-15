@@ -20,7 +20,7 @@ typedef struct {
     TaskStatus newStatus;
     char timestamp[DATE_LEN];
     char userId[MAX_ID_LEN];
-} TaskHistory;
+}TaskHistory;
 
 // Basic stack operations
 Stack* createStack();

@@ -358,70 +358,75 @@ void recordChange(const char* description, const char* userId, const char* chang
         }
     }
 
-    time_t now = time(NULL);
-    struct tm* timeinfo = localtime(&now);
-    char timestamp[DATE_LEN];
-    strftime(timestamp, DATE_LEN, "%Y-%m-%d", timeinfo);
-
-    ChangeLog* log = (ChangeLog*)malloc(sizeof(ChangeLog));
-    if (!log) {
+    ChangeLog* newLog = (ChangeLog*)malloc(sizeof(ChangeLog));
+    if (!newLog) {
         printf("ERROR: Gagal alokasi memori untuk log.\n");
         return;
     }
 
-    strncpy(log->changeId, generateChangeId("CHG"), MAX_ID_LEN - 1);
-    strncpy(log->description, description, MAX_DESC_LEN - 1);
-    strncpy(log->timestamp, timestamp, DATE_LEN - 1);
-    strncpy(log->userId, userId, MAX_ID_LEN - 1);
-    strncpy(log->changeType, changeType, MAX_NAME_LEN - 1);
+    time_t now = time(NULL);
+    struct tm* timeinfo = localtime(&now);
 
-    UndoAction* action = (UndoAction*)malloc(sizeof(UndoAction));
-    if (action) {
-        action->type = UNDO_TASK_CREATION; // Use any type, we only care about the record
-        snprintf(action->taskId, MAX_ID_LEN, "%s|%s|%s|%s|%s",
-                log->changeId, log->timestamp, log->changeType,
-                log->description, log->userId);
-        pushUndoAction(changeHistoryStack, action);
-    }
+    strftime(newLog->timestamp, DATE_LEN, "%Y-%m-%d", timeinfo);
+    strncpy(newLog->changeId, generateChangeId("CHG"), MAX_ID_LEN - 1);
+    strncpy(newLog->description, description, MAX_DESC_LEN - 1);
+    strncpy(newLog->userId, userId, MAX_ID_LEN - 1);
+    strncpy(newLog->changeType, changeType, MAX_NAME_LEN - 1);
+    
+    newLog->changeId[MAX_ID_LEN - 1] = '\0';
+    newLog->description[MAX_DESC_LEN - 1] = '\0';
+    newLog->timestamp[DATE_LEN - 1] = '\0';
+    newLog->userId[MAX_ID_LEN - 1] = '\0';
+    newLog->changeType[MAX_NAME_LEN - 1] = '\0';
 
-    free(log);
+    push(changeHistoryStack, newLog);
+    
 }
-
 void displayChangeLog() {
+    // Asumsi stack global Anda untuk log perubahan bernama changeHistoryStack
     if (!changeHistoryStack || isEmpty(changeHistoryStack)) {
-        printf("Tidak ada log perubahan.\n");
+        printf("Log Perubahan kosong.\n");
         return;
     }
 
-    printf("\nLog Perubahan:\n");
-    printf("+=======================================================================+\n");
-    printf("| %-10s | %-10s | %-15s | %-30s | %-10s |\n",
-           "ID", "Tanggal", "Tipe", "Deskripsi", "User");
-    printf("+=======================================================================+\n");
-
+    // Buat stack sementara agar tidak merusak stack asli
     Stack* tempStack = createStack();
-    if (!tempStack) return;
+    if (!tempStack) {
+        printf("ERROR: Gagal membuat stack sementara.\n");
+        return;
+    }
 
+    // Cetak Header Tabel
+    printf("Log Perubahan:\n");
+    printf("+========+============+==================+==========================================+==========+\n");
+    printf("| ID     | Tanggal    | Tipe             | Deskripsi                                | User     |\n");
+    printf("+========+============+==================+==========================================+==========+\n");
+
+    // Pindahkan semua item ke stack sementara sambil mencetaknya
     while (!isEmpty(changeHistoryStack)) {
-        UndoAction* action = popUndoAction(changeHistoryStack);
-        if (action) {
-            char id[MAX_ID_LEN], date[DATE_LEN], type[MAX_NAME_LEN], 
-                 desc[MAX_DESC_LEN], user[MAX_ID_LEN];
-            sscanf(action->taskId, "%[^|]|%[^|]|%[^|]|%[^|]|%s",
-                   id, date, type, desc, user);
-            printf("| %-10s | %-10s | %-15s | %-30s | %-10s |\n",
-                   id, date, type, desc, user);
-            pushUndoAction(tempStack, action);
+        // Ambil data dari stack utama
+        ChangeLog* log = (ChangeLog*)pop(changeHistoryStack);
+        if (log) {
+            // Cetak data langsung dari field struct, tidak perlu strtok!
+            printf("| %-6s | %-10s | %-16s | %-40s | %-8s |\n",
+                   log->changeId,
+                   log->timestamp,
+                   log->changeType,
+                   log->description,
+                   log->userId);
+            // Masukkan ke stack sementara untuk menjaga urutan
+            push(tempStack, log);
         }
     }
+    printf("+========+============+==================+==========================================+==========+\n");
 
+    // Kembalikan semua item dari stack sementara ke stack utama
     while (!isEmpty(tempStack)) {
-        UndoAction* action = popUndoAction(tempStack);
-        pushUndoAction(changeHistoryStack, action);
+        push(changeHistoryStack, pop(tempStack));
     }
 
-    freeStack(tempStack);
-    printf("+=======================================================================+\n");
+    // Hapus stack sementara dari memori
+    free(tempStack);
 }
 
 void searchChangeLog(const char* searchTerm) {
