@@ -53,4 +53,3 @@ void searchChangeLog(const char* searchTerm);
 void exportChangeLog(const char* filename);
 
 #endif 
-// PROJECT_H

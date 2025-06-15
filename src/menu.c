@@ -72,6 +72,30 @@ void displayLogMenu() {
     printf("Pilihan: ");
 }
 
+void displayBatchMenu() {
+    printf("\n");
+    printf("+================================================+\n");
+    printf("|                 MENU BATCH                      |\n");
+    printf("+================================================+\n");
+    printf("| 1. Batch Hapus Tugas                           |\n");
+    printf("| 2. Batch Ubah Status                           |\n");
+    printf("| 3. Batch Edit Tugas                            |\n");
+    printf("| 0. Kembali                                     |\n");
+    printf("+================================================+\n");
+    printf("Pilihan: ");
+}
+
+void displayFileMenu() {
+    printf("\n");
+    printf("+================================================+\n");
+    printf("|                 MENU FILE                       |\n");
+    printf("+================================================+\n");
+    printf("| 1. Simpan Data                                 |\n");
+    printf("| 2. Muat Data                                   |\n");
+    printf("| 0. Kembali                                     |\n");
+    printf("+================================================+\n");
+    printf("Pilihan: ");
+}
 
 void handleProjectMenu() {
     int choice;
@@ -316,7 +340,113 @@ void handleLogMenu() {
     } while (1);
 }
 
+void handleBatchMenu() {
+    int choice;
+    char projectId[MAX_ID_LEN];
+    Project* project;
 
+    do {
+        displayBatchMenu();
+        scanf("%d", &choice);
+        clearBuffer();
+
+        if (choice == 0) break;
+
+        printf("Masukkan ID proyek: ");
+        fgets(projectId, MAX_ID_LEN, stdin);
+        projectId[strcspn(projectId, "\n")] = 0;
+        project = findProjectById(projectId);
+
+        if (!project) {
+            printf("Proyek tidak ditemukan.\n");
+            continue;
+        }
+
+        switch (choice) {
+            case 1:
+                processBatchDeleteTasks(project);
+                break;
+            case 2:
+                processBatchStatusChange(project);
+                break;
+            case 3:
+                processBatchEdit(project);
+                break;
+            default:
+                printf("Pilihan tidak valid.\n");
+        }
+    } while (1);
+}
+
+void handleFileMenu() {
+    int choice;
+    char filename[MAX_NAME_LEN];
+
+    do {
+        displayFileMenu();
+        scanf("%d", &choice);
+        clearBuffer();
+
+        switch (choice) {
+            case 1:
+                printf("Masukkan nama file untuk menyimpan: ");
+                fgets(filename, MAX_NAME_LEN, stdin);
+                filename[strcspn(filename, "\n")] = 0;
+                saveDataToFile(filename);
+                break;
+
+            case 2:
+                printf("Masukkan nama file untuk dimuat: ");
+                fgets(filename, MAX_NAME_LEN, stdin);
+                filename[strcspn(filename, "\n")] = 0;
+                loadDataFromFile(filename);
+                break;
+
+            case 0:
+                return;
+
+            default:
+                printf("Pilihan tidak valid.\n");
+        }
+    } while (1);
+}
+
+void handleUndo() {
+    if (isEmpty(undo_stack)) {
+        printf("Tidak ada aksi yang dapat di-undo.\n");
+        return;
+    }
+
+    UndoAction* action = popUndoAction(undo_stack);
+    if (!action) {
+        printf("Gagal melakukan undo.\n");
+        return;
+    }
+
+    switch (action->type) {
+        case UNDO_TASK_CREATION:
+            deleteTask(findProjectById(action->projectId), action->taskId, 1);
+            break;
+
+        case UNDO_TASK_DELETION:
+            // Implement task restoration if needed
+            break;
+
+        case UNDO_PROJECT_CREATION:
+            deleteProject(action->projectId);
+            break;
+
+        case UNDO_PROJECT_DELETION:
+            // Implement project restoration if needed
+            break;
+
+        default:
+            printf("Tipe aksi undo tidak valid.\n");
+    }
+
+    free(action);
+    printf("Aksi berhasil di-undo.\n");
+}
 
 void runMainMenu() {
     int choice;
@@ -332,6 +462,18 @@ void runMainMenu() {
                 break;
             case 2:
                 handleTaskMenu();
+                break;
+            case 3:
+                handleUndo();
+                break;
+            case 4:
+                handleBatchMenu();
+                break;
+            case 5:
+                handleFileMenu();
+                break;
+            case 6:
+                handleLogMenu();
                 break;
             case 0:
                 printf("Thank you for using Project Management System!\n");

@@ -10,7 +10,15 @@ void displayMainMenu();
 void displayProjectMenu();
 void displayTaskMenu();
 void displayLogMenu();
+void displayBatchMenu();
+void displayFileMenu();
 
 void handleProjectMenu();
 void handleTaskMenu();
 void handleLogMenu();
+void handleBatchMenu();
+void handleFileMenu();
+void handleUndo();
+void runMainMenu();
+
+#endif // MENU_H 

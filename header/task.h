@@ -65,7 +65,7 @@ void recordTaskStatusChange(const char* taskId, TaskStatus oldStatus,
                           TaskStatus newStatus, const char* userId);
 void displayTaskHistory(const char* taskId);
 void analyzeTaskStatusChanges(const char* taskId);
-
+// task.c
 
 void displayCompletionQueue();
 void processNextTaskInQueue();
@@ -73,4 +73,3 @@ void repopulateCompletionQueue(Task* task);
 extern const char* taskStatusToString[];
 
 #endif
-// TASK_H

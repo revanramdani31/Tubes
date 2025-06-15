@@ -126,6 +126,11 @@ void loadDataFromFile(const char* filename) {
     int task_count = 0;
     int task_capacity = 10;
     
+    if (current_loading_project && task_count > 0) {
+        buildTaskHierarchyForProject(current_loading_project, temp_tasks, task_count);
+        printf("Mempopulasi ulang antrian tugas...\n");
+        repopulateCompletionQueue(current_loading_project->rootTasks);
+    }
     // Initialize temporary task array
     temp_tasks = (Task**)malloc(sizeof(Task*) * task_capacity);
     if (!temp_tasks) {
