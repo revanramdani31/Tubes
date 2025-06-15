@@ -7,7 +7,7 @@ Program ini adalah sistem manajemen proyek sederhana yang memungkinkan pengguna 
 ### Menggunakan GCC (Windows/Linux/Mac)
 ```bash
 # Kompilasi dengan peringatan dan informasi debug
-gcc -Wall -Wextra -g proyek.c -o proyek
+gcc -Wall -Wextra -g -Iheader src/main.c src/utils.c src/linkedlist.c src/stack.c src/queue.c src/task.c src/project.c src/undo.c src/batch.c src/fileio.c src/menu.c -o proyek
 ```
 
 ### Menggunakan Make (jika Makefile tersedia)
