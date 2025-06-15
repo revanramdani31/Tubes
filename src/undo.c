@@ -1,4 +1,6 @@
 #include "undo.h"
+#include "project.h"
+#include "task.h"
 #include "stack.h"
 #include <stdio.h>
 

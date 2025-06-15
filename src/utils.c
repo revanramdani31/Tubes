@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include "utils.h"
-
+#include "task.h"
 
 // Global variables
 long project_counter = 0;
